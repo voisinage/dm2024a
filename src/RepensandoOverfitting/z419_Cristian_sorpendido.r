@@ -16,7 +16,7 @@ require("rpart.plot")
 setwd("~/buckets/b1/") # establezco la carpeta donde voy a trabajar
 
 # cargo el dataset
-dataset <- fread( "./datasets/dataset_pequeno.csv")
+dataset <- fread( "~/datasets/dataset_pequeno.csv")
 
 # quito los BAJA+1 del dataset, Locura Total
 dataset <- dataset[ clase_ternaria != "BAJA+1" ]
