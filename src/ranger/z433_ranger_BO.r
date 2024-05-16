@@ -203,7 +203,7 @@ ksemilla_azar1 <- tabla_semillas[ 1, semilla ]  # 1 es mi primer semilla
 ksemilla_azar2 <- tabla_semillas[ 2, semilla ]  # 2 es mi segunda semilla
 
 # cargo el dataset donde voy a entrenar el modelo
-dataset <- fread("./datasets/dataset_pequeno.csv", stringsAsFactors = TRUE)
+dataset <- fread("~/datasets/dataset_pequeno.csv", stringsAsFactors = TRUE)
 
 dataset <- dataset[foto_mes %in% PARAM$input$training]
 
