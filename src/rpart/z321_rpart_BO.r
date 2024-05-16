@@ -194,7 +194,7 @@ EstimarGanancia <- function(x) {
 setwd("~/buckets/b1/")
 
 #cargo MI semilla, que esta en MI bucket
-tabla_semillas <- fread( "./datasets//mis_semillas.txt" )
+tabla_semillas <- fread( "~/datasets//mis_semillas.txt" )
 ksemilla_azar <- tabla_semillas[ 1, semilla ]  # 1 es mi primer semilla
 
 # cargo los datos
@@ -209,12 +209,12 @@ dir.create("./exp/", showWarnings = FALSE)
 dir.create("./exp/HT3210/", showWarnings = FALSE)
 
 # Establezco el Working Directory DEL EXPERIMENTO
-setwd("./exp/HT3220/")
+setwd("./exp/HT3210/")
 
 
-archivo_log <- "HT322.txt"
-archivo_log_mejor <- "HT322_mejor.txt"
-archivo_BO <- "HT322.RDATA"
+archivo_log <- "HT321.txt"
+archivo_log_mejor <- "HT321_mejor.txt"
+archivo_BO <- "HT321.RDATA"
 
 # leo si ya existe el log
 #  para retomar en caso que se se corte el programa
