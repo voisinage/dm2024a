@@ -674,14 +674,15 @@ crear_experimento_nuevo <- function( pparam_local )
   # creo el script que corre el experimento
   if( !file.exists("run.sh"))
   {
-    linea1  <- "tabulador=\"\t\"\n"
-    linea2  <- "echo \"timestamp\tevent\"  >  z-SHlog.txt \n"
-    linea3  <- "fecha0=$(date +\"%Y%m%d %H%M%S\") \n"
-    linea4  <- "echo \"$fecha0\"\"$tabulador\"\"SH_START\" >> z-SHlog.txt \n"
-    linea5  <- "~/install/memcpu & \n"
-    linea6 <-  "memcpu_PID=$! \n"
+    linea1  <- "#!/bin/bash\n"
+    linea2  <- "tabulador=\"\t\"\n"
+    linea3  <- "echo \"timestamp\tevent\"  >  z-SHlog.txt \n"
+    linea4  <- "fecha0=$(date +\"%Y%m%d %H%M%S\") \n"
+    linea5  <- "echo \"$fecha0\"\"$tabulador\"\"SH_START\" >> z-SHlog.txt \n"
+    linea6  <- "~/install/memcpu & \n"
+    linea7 <-  "memcpu_PID=$! \n"
 
-    linea7 <- paste0( "nice -n 15 Rscript --vanilla ",
+    linea8 <- paste0( "nice -n 15 Rscript --vanilla ",
                       script_corto,
                       "  " ,
                       pparam_local$expenv$repo_dir,
@@ -689,11 +690,11 @@ crear_experimento_nuevo <- function( pparam_local )
                       "parametros.yml",
                       "  2>&1 | tee z-SHoutfile.txt \n" )
 
-    linea8  <- "fecha1=$(date +\"%Y%m%d %H%M%S\") \n"
-    linea9  <- "echo \"$fecha1\"\"$tabulador\"\"SH_END\" >> z-SHlog.txt \n"
-    linea10 <- "kill $memcpu_PID \n"
+    linea9  <- "fecha1=$(date +\"%Y%m%d %H%M%S\") \n"
+    linea10  <- "echo \"$fecha1\"\"$tabulador\"\"SH_END\" >> z-SHlog.txt \n"
+    linea11 <- "kill -SIGINT $memcpu_PID \n"
 
-    comando  <- paste0( linea1, linea2, linea3, linea4, linea5, linea6, linea7, linea8, linea9, linea10 )
+    comando  <- paste0( linea1, linea2, linea3, linea4, linea5, linea6, linea7, linea8, linea9, linea10, linea11 )
 
     # creacion del archivo
     shell_script <- "run.sh"
