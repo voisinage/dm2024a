@@ -149,8 +149,14 @@ exp_gc_shutdown <- function( pbucket_dir, pwf_dir, pnombrewf )
   i <- 1
   while( substr( pbucket_dir, i,i) ==  substr( pwf_dir, i,i) ) i <- i + 1
   while( substr( pwf_dir, i,i) == "/"  ) i <- i + 1
-  carpeta <- paste0( substr( pwf_dir, i, 256 ) , pnombrewf )
 
+  j <- 1
+  while( substr( pwf_dir, j,j) ==  substr( pnombrewf, j,j) ) j <- j + 1
+  while( substr( pnombrewf, j,j) == "/"  ) j <- j + 1
+
+  carpeta <- paste0( substr( pwf_dir, i, 256 ), substr( pnombrewf, j, 256) )
+
+  system( "echo >> ~/install/rutashutdown_old.txt && cat  ~/install/rutashutdown.txt >> ~/install/rutashutdown_old.txt")
   cat( carpeta, file = "~/install/rutashutdown.txt" )
   cat( carpeta, "\n" )
   cat( "exp_gc_shutdown()  END\n")
@@ -192,7 +198,7 @@ exp_wf_init <- function( pnombrewf )
   setwd( output$nombrewf )
   cat( "dentro de exp_wf_init(), output$nombrewf = " , output$nombrewf, "\n" )
 
-  exp_gc_shutdown( output$bucket_dir, output$wf_dir,output$nombrewf )
+  exp_gc_shutdown( output$bucket_dir, output$wf_dir, output$nombrewf )
 
   output$lastexp <- ""
   output$instruction <- 0L
@@ -435,10 +441,20 @@ exp_buscar_experimento <- function( pparam )
          param_md5old <- md5sum("~/tmp/parametros.yml")
          if( param_md5nuevo == param_md5old )
          {
-           cat( "coincide= ",  vdir ,"\n")
-           if( file.exists( paste0( vdir, "/z-Rcanresume.txt" ))) candidatos[i] <- 1
-           if( pparam$expenv$bypass & file.exists( paste0( vdir, "/z-Rcanbypass.txt" ))) candidatos[i] <- 2
-           if( file.exists( paste0( vdir, "/z-Rend.txt" ))) candidatos[i] <- 3
+           cat( "coincide= ",  vdir ,"\n") 
+           candidatos[i] <- -1
+
+           if( candidatos[i] == -1 & 
+              file.exists( paste0( vdir, "/z-Rend.txt" ))) candidatos[i] <- 3
+
+           if( candidatos[i] == -1 &
+              pparam$expenv$bypass &
+              file.exists( paste0( vdir, "/z-Rcanbypass.txt" ))) candidatos[i] <- 2
+
+           if( candidatos[i] == -1 &
+              file.exists( paste0( vdir, "/z-Rcanresume.txt" )) &
+              !file.exists( paste0( vdir, "/z-Rabort.txt" )) ) candidatos[i] <- 1
+
          }
 
       }
@@ -764,7 +780,7 @@ exp_correr_script <- function( pparam_local )
     setwd( exp_carpeta )
     system( "./run.sh" )
 
-    exp_gc_shutdown( pparam_local$expenv$bucket_dir, pparam_local$expenv$wf_dir, pparam_local$expenv$carpeta_wf )
+    exp_gc_shutdown( pparam_local$expenv$bucket_dir, pparam_local$expenv$wf_dir, pparam_local$expenv$nombrewf )
     setwd( pparam_local$expenv$carpeta_wf )
     if( file.exists( paste0( exp_carpeta, "/z-Rabort.txt") ) )
     {
