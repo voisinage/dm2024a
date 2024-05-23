@@ -335,7 +335,7 @@ HT_tuning_base <- function( pinputexps, bypass=FALSE)
 
 
   # una Beyesian humilde, pero no descabellada
-  param_local$bo_iteraciones <- 5 # iteraciones de la Optimizacion Bayesiana
+  param_local$bo_iteraciones <- 60 # iteraciones de la Optimizacion Bayesiana
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -369,7 +369,7 @@ ZZ_final_base9 <- function( pinputexps )
 
 
   # default 5 semillas
-  param_local$qsemillas <- 60
+  param_local$qsemillas <- 5
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
