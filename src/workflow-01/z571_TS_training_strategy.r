@@ -43,19 +43,23 @@ if( "future" %in%  names( envg$PARAM ) )
 {
   cat( "inicio grabar future\n")
   # grabo los datos del futuro
+  cat( "Iniciando grabado de dataset_future.csv.gz\n" )
   fwrite(dataset[get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$future, ],
     file = "dataset_future.csv.gz",
     logical01 = TRUE,
     sep = ","
   )
+  cat( "Finalizado grabado de dataset_future.csv.gz\n" )
 
   # grabo los datos donde voy a entrenar los Final Models
+  cat( "Iniciando grabado de dataset_train_final.csv.gz\n" )
   fwrite(dataset[get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$final_train, ],
     file = "dataset_train_final.csv.gz",
     logical01 = TRUE,
     sep = ","
   )
-  cat( "fin grabar future\n")
+  cat( "Finalizado grabado de dataset_train_final.csv.gz\n" )
+
   archivos_salida <- c( archivos_salida, "dataset_future.csv.gz", "dataset_train_final.csv.gz" )
 }
 
@@ -84,13 +88,13 @@ if( "train" %in%  names( envg$PARAM ) )
   dataset[, fold_test := 0L]
   dataset[get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$train$testing, fold_test := 1L]
 
-
+  cat( "Iniciando grabado de dataset_training.csv.gz\n" )
   fwrite(dataset[fold_train + fold_validate + fold_test >= 1, ],
     file = "dataset_training.csv.gz",
     logical01 = TRUE,
     sep = ","
   )
-  cat( "fin grabar train\n")
+  cat( "Finalizado grabado de dataset_training.csv.gz\n" )
 
   archivos_salida <- c( archivos_salida, "dataset_training.csv.gz" )
 }

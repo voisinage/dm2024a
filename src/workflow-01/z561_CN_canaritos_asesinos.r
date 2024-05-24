@@ -231,12 +231,13 @@ GrabarOutput()
 #------------------------------------------------------------------------------
 # grabo el dataset
 cat( "escritura del dataset\n")
-
+cat( "Iniciando grabado del dataset\n" )
 fwrite(dataset,
   file = "dataset.csv.gz",
   logical01 = TRUE,
   sep = ","
 )
+cat( "Finalizado grabado del dataset\n" )
 
 # copia la metadata sin modificar
 cat( "escritura de metadata\n")

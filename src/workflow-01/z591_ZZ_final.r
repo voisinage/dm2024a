@@ -228,18 +228,19 @@ for (modelo_rank in envg$PARAM$modelos_rank) {
     )
 
 
-    # genero los archivos para Kaggle
-    cortes <- seq(
-      from = envg$PARAM$kaggle$envios_desde,
-      to = envg$PARAM$kaggle$envios_hasta,
-      by = envg$PARAM$kaggle$envios_salto
-    )
 
 
     setorder(tb_prediccion, -prob)
 
     if (!future_con_clase) {
       # genero los archivos para Kaggle
+
+      cortes <- seq(
+        from = envg$PARAM$kaggle$envios_desde,
+        to = envg$PARAM$kaggle$envios_hasta,
+        by = envg$PARAM$kaggle$envios_salto
+      )
+
       for (corte in cortes)
       {
         tb_prediccion[, Predicted := 0L]
@@ -261,6 +262,22 @@ for (modelo_rank in envg$PARAM$modelos_rank) {
           sep = ","
         )
         cat( "written prediccion Kaggle\n")
+
+        # hago el submit
+        if( "competition" %in% names(envg$PARAM$kaggle) )
+        {
+          l1 <- "#!/bin/bash \n"
+          l2 <- "source ~/.venv/bin/activate  \n"
+          l3 <- paste0( "kaggle competitions submit -c ", envg$PARAM$kaggle$competition)
+          l3 <- paste0( l3, " -f ", nom_submit )
+          l3 <- paste0( l3,  " -m ",  "\"", carpeta_actual(),  " , ",  nom_submit , "\"",  "\n")
+          l4 <- "deactivate \n"
+          
+          cat( paste0( l1, l2, l3, l4 ) , file = "subir.sh" )
+          Sys.chmod( "subir.sh", mode = "744", use_umask = TRUE)
+
+          system( "./subir.sh" )
+        }
       }
     }
 

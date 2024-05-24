@@ -27,7 +27,9 @@ action_inicializar()
 cat("lectura del dataset\n")
 arch <- paste0( "./datasets/", envg$PARAM$archivo)
 action_verificar_archivo( arch )
+cat( "Iniciando lectura del archivo\n" )
 dataset <- fread( arch )
+cat( "Finalizada lectura del archivo\n" )
 
 #--------------------------------------
 # verifico que existan los campos de la metadata
@@ -64,11 +66,13 @@ setorderv(dataset, envg$PARAM$primarykey)
 # grabo el dataset
 
 cat("grabo el dataset\n")
+cat( "Iniciando grabado del dataset\n" )
 fwrite(dataset,
   file = "dataset.csv.gz",
   logical01 = TRUE,
   sep = ","
 )
+cat( "Finalizado grabado del dataset\n" )
 #--------------------------------------
 # grabo metadata
 

@@ -6,7 +6,38 @@ require( "tools" )
 
 
 dir.create( "~/tmp", showWarnings = FALSE)
+#------------------------------------------------------------------------------
+# sufijo de un diretorio
 
+sufijo <- function( st )
+{
+  if( nchar( st ) > 0 )
+  {
+    i <- nchar( st )
+    while ( i > 0 & substr( st, i, i ) == "/" )  i <- i - 1
+    if( i==1 & substr( st, i, i ) == "/" ) return( "" )
+    last <- i
+
+    while ( i > 0 & substr( st, i, i ) != "/" )  i <- i - 1
+
+    if( substr( st, i, i ) == "/" ) i <- i+1
+    return(  substr( st, i, last ) )
+  }
+
+  return( ""  )
+}
+#------------------------------------------------------------------------------
+# envio mensaje ( Zulip )
+
+exp_message_send <- function( messenger, message )
+{
+  if( nchar( messenger ) > 0 )
+  {
+    servidor <- Sys.info()["nodename"]
+    comando <- paste0( messenger, " '", message, ", ", servidor, "'" )
+    system( comando )
+  }
+}
 #------------------------------------------------------------------------------
 # verifico si existe el archivo, sino aborto escribiendo tambien en el workflow
 
@@ -173,6 +204,7 @@ exp_wf_init <- function( pnombrewf )
   output$wf_dir <- envg$EXPENV$wf_dir
   output$repo_dir <- envg$EXPENV$repo_dir
   output$datasets_dir <- envg$EXPENV$datasets_dir
+  output$messenger <- envg$EXPENV$messenger
 
   # traigo la semilla
   arch_semillas <- paste0( envg$EXPENV$datasets_dir, envg$EXPENV$arch_sem)
@@ -262,6 +294,7 @@ exp_init <- function( pbypass=FALSE )
   output$expenv$repo_dir <- env_up2$param_local$repo_dir
   output$expenv$datasets_dir <- env_up2$param_local$datasets_dir
   output$expenv$nombrewf <- env_up2$param_local$nombrewf
+  output$expenv$messenger <- env_up2$param_local$messenger
   cat( "output$expenv$nombrewf  = ", output$expenv$nombrewf , "\n" )
 
   # la semilla va directo
@@ -542,11 +575,10 @@ funcion_prefijo <- function( st )
   return( substr(st,1,i) )
 }
 #------------------------------------------------------------------------------
-# debe crear un experimento totalmente nuevo
 
-crear_experimento_nuevo <- function( pparam_local )
+generar_experimento_nombre <- function( pparam_local )
 {
-  cat( "crear_experimento_nuevo() START" , "\n")
+  cat( "generar_experimento_nombre() START" , "\n")
   prefijo <- funcion_prefijo( pparam_local$expenv$funcname )
 
 
@@ -574,6 +606,18 @@ crear_experimento_nuevo <- function( pparam_local )
 
   # Creo la carpeta del experimento
   nom_experimento <- paste0( prefijo, "-", sprintf( "%04d", sufijo_num ) )
+
+  cat( "generar_experimento_nombre() END" , "\n")
+  return( nom_experimento )
+}
+#------------------------------------------------------------------------------
+# debe crear un experimento totalmente nuevo
+
+crear_experimento_nuevo <- function( pparam_local )
+{
+  cat( "crear_experimento_nuevo() START" , "\n")
+  nom_experimento <- generar_experimento_nombre( pparam_local ) 
+
   exp_carpeta <- paste0( pparam_local$expenv$exp_dir, "/", nom_experimento )
 
   dir.create( nom_experimento, showWarnings = TRUE)
@@ -620,7 +664,8 @@ crear_experimento_nuevo <- function( pparam_local )
 
       if( file.exists( paste0( pparam_local$expenv$exp_dir, "/", vexp, "/z-Rabort.txt") ) |
           ( !file.exists( paste0( pparam_local$expenv$exp_dir, "/", vexp, "/z-Rend.txt") ) ) &
-          ( !file.exists( paste0( pparam_local$expenv$exp_dir, "/", vexp, "/z-Rcanbypass.txt") ) )
+          ( !file.exists( paste0( pparam_local$expenv$exp_dir, "/", vexp, "/z-Rcanbypass.txt") ) ) &
+          ( !file.exists( paste0( pparam_local$expenv$exp_dir, "/", vexp, "/z-SHbypassartifact.txt") ) ) 
         )
       {
         cat( "Fatal Error al querer correr ",  vexp, "\n" )
@@ -753,8 +798,7 @@ exp_correr_script <- function( pparam_local )
   setwd( pparam_local$expenv$carpeta_wf )
   # encontre el experimento y esta corrido o me pidieron bypass
   # no debo volver a correr nada, sigo de largo
-  if( busqueda$encontre & (busqueda$Rend | 
-      ( pparam_local$expenv$bypass & busqueda$bypass)) )
+  if( busqueda$encontre & busqueda$Rend )
   {
     # estoy seguro que termino bien, y NO aborto
     cat( "exp_correr_script() experimento ya corrido", busqueda$folder, "\n" )
@@ -765,6 +809,30 @@ exp_correr_script <- function( pparam_local )
     setwd( pparam_local$expenv$carpeta_wf )
     env_up$param_local$lastexp <- busqueda$folder  # fundamental
     return( busqueda$folder )
+  }
+
+  # me pidieron hacer bypass y el experimento lo permite
+  if( busqueda$encontre & pparam_local$expenv$bypass 
+     & busqueda$bypass )
+  {
+    nom_experimento_bypass <- generar_experimento_nombre( pparam_local )
+    exp_bypass_carpeta <- paste0( pparam_local$expenv$exp_dir, "/", nom_experimento_bypass)
+
+    setwd( pparam_local$expenv$exp_dir )
+    system( paste0( "cp -r  ./", busqueda$folder, "  ./", nom_experimento_bypass) )
+    setwd( nom_experimento_bypass )
+    cat( format(Sys.time(), "%Y%m%d %H%M%S")  , file = "z-SHbypassartifact.txt" )
+    file.remove( "z-Rcanbypass.txt" )
+    file.remove( "z-Rcanresume.txt" )
+
+    cat( "exp_correr_script() nuevo bypass", nom_experimento_bypass, "\n" )
+    setwd(pparam_local$expenv$carpeta_wf)
+    if( !dir.exists(pparam_local$expenv$softlink) )
+      exp_softlink( pparam_local$expenv$softlink, exp_bypass_carpeta )
+
+    setwd( pparam_local$expenv$carpeta_wf )
+    env_up$param_local$lastexp <- nom_experimento_bypass  # fundamental
+    return( nom_experimento_bypass )
   }
 
   cat( "exp_correr_script() encontre1\n" )
@@ -798,9 +866,14 @@ exp_correr_script <- function( pparam_local )
         append = TRUE
       )
 
+      mensaje <- paste0( "ABORT, ", pparam_local$expenv$nombrewf,", ", sufijo(exp_carpeta))
+      exp_message_send( pparam_local$expenv$messenger, mensaje )
+
       stop( "correr_script   aborted\n" )
     } else {
       # Termino OK
+      mensaje <- paste0( "Ok, ", pparam_local$expenv$nombrewf,", ", sufijo(exp_carpeta))
+      exp_message_send( pparam_local$expenv$messenger, mensaje )
       setwd( pparam_local$expenv$carpeta_wf )
       env_up$param_local$lastexp <- busqueda$folder  # fundamental
       return( busqueda$folder )
@@ -838,19 +911,15 @@ exp_correr_script <- function( pparam_local )
       append = TRUE
     )
 
+    mensaje <- paste0( "ABORT, ", pparam_local$expenv$nombrewf,", ", sufijo(pparam_local$expenv$nom_experimento))
+    exp_message_send( pparam_local$expenv$messenger, mensaje )
+
     stop( paste0("Falla catastrofica, ha terminado anormalmente", pparam_local$expenv$nom_experimento) )
   }
 
-  # el proceso hijo Termino OK
-  if( file.exists( "z-Rend.txt" ) )
-  {
-    setwd( pparam_local$expenv$carpeta_wf )
-    cat( format(Sys.time(), "%Y%m%d %H%M%S"), "\n",
-      file = "z-Rend.txt",
-      append = TRUE
-    )
 
-  }
+  mensaje <- paste0( "Ok, ", pparam_local$expenv$nombrewf,", ", sufijo(pparam_local$expenv$nom_experimento))
+  exp_message_send( pparam_local$expenv$messenger, mensaje )
 
   env_up$param_local$lastexp <- pparam_local$expenv$nom_experimento  # fundamental
   cat( "exp_correr_script() env_up$param_local$lastexp = ", env_up$param_local$lastexp , "\n" )

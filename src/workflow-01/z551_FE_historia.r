@@ -325,11 +325,13 @@ if (envg$PARAM$Tendencias2$run) {
 #------------------------------------------------------------------------------
 # grabo el dataset
 cat( "grabado dataset\n")
+cat( "Iniciando grabado del dataset\n" )
 fwrite(dataset,
   file = "dataset.csv.gz",
   logical01 = TRUE,
   sep = ","
 )
+cat( "Finalizado grabado del dataset\n" )
 
 # copia la metadata sin modificar
 cat( "grabado metadata\n")
