@@ -455,7 +455,7 @@ wf_tapia <- function( pnombrewf )
   FEintra_base()
   DR_drifting_base(metodo="rank_cero_fijo")
   FEhist_base()
-  FErf_attributes_base()
+  dt <- FErf_attributes_base()
   #CN_canaritos_asesinos_base(ratio=0.2, desvio=4.0)
 
   ts7 <- TS_strategy_base7()
@@ -465,7 +465,7 @@ wf_tapia <- function( pnombrewf )
 
   # agregado para Julian Fernando Tapia
   #   que reutilice los hiperparametros del paso HT
-  ts9 <- TS_strategy_base9()
+  ts9 <- TS_strategy_base9( dt )
   ZZ_final_base9( c(ht, ts9) )
 
   return( exp_wf_end() ) # linea fija
